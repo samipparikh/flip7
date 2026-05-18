@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLIP 7</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div id="menu-screen" class="screen active">
+            <div class="title-container">
+                <h1>FLIP<span class="seven">7</span></h1>
+                <p class="subtitle">Press Your Luck Card Game</p>
+            </div>
+            <div class="menu-options">
+                <div class="player-select">
+                    <label>Players</label>
+                    <div class="player-count-selector">
+                        <button class="btn-count" id="btn-minus">−</button>
+                        <span id="player-count">3</span>
+                        <button class="btn-count" id="btn-plus">+</button>
+                    </div>
+                </div>
+                <div id="player-names"></div>
+                <button class="btn-primary" id="btn-start">Start Game</button>
+                <button class="btn-secondary" id="btn-rules">How to Play</button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <div class="round-info">Round <span id="current-round">1</span> / <span id="total-rounds">3</span></div>
+                <div class="deck-count">Deck: <span id="deck-remaining">0</span></div>
+            </div>
+            <div class="scoreboard" id="scoreboard"></div>
+            <div class="current-player-area">
+                <h2 id="current-player-name"></h2>
+                <div class="flipped-cards" id="flipped-cards"></div>
+                <div class="current-score">
+                    <span id="current-points">0</span> pts
+                    <span id="card-count-display">(0 cards)</span>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-flip" id="btn-flip">FLIP</button>
+                    <button class="btn-stop" id="btn-stop">STOP</button>
+                </div>
+                <div class="status-message" id="status-message"></div>
+            </div>
+        </div>
+
+        <div id="round-end-screen" class="screen">
+            <h2>Round Complete!</h2>
+            <div id="round-scores"></div>
+            <button class="btn-primary" id="btn-next-round">Next Round</button>
+        </div>
+
+        <div id="game-over-screen" class="screen">
+            <h2>Game Over!</h2>
+            <div id="final-scores"></div>
+            <button class="btn-primary" id="btn-play-again">Play Again</button>
+        </div>
+
+        <div id="rules-screen" class="screen">
+            <div class="rules-content">
+                <h2>How to Play</h2>
+                <div class="rules-text">
+                    <h3>Overview</h3>
+                    <p>Flip cards one at a time. If you flip a number you already have — you BUST and score nothing for the round!</p>
+
+                    <h3>The Deck (94 cards)</h3>
+                    <p>Number cards: one 1, two 2s, three 3s, four 4s, five 5s, six 6s, seven 7s. Plus special cards mixed in.</p>
+
+                    <h3>On Your Turn</h3>
+                    <ul>
+                        <li><strong>FLIP</strong> — Reveal the next card from the deck</li>
+                        <li><strong>STOP</strong> — Bank your current points and end your turn</li>
+                    </ul>
+
+                    <h3>Busting</h3>
+                    <p>If you flip a number card that matches a number you already have face-up, you BUST! You score 0 points this round.</p>
+
+                    <h3>Scoring</h3>
+                    <ul>
+                        <li>Your score = sum of all your face-up number cards</li>
+                        <li><strong>7-Card Bonus:</strong> If you reach exactly 7 cards without busting, your score is DOUBLED!</li>
+                    </ul>
+
+                    <h3>Special Cards</h3>
+                    <ul>
+                        <li><strong>+2 Bonus</strong> — Adds 2 extra points to your score</li>
+                        <li><strong>+4 Bonus</strong> — Adds 4 extra points to your score</li>
+                        <li><strong>Second Chance</strong> — Saves you from one bust (discards the duplicate)</li>
+                        <li><strong>Freeze</strong> — Forces another player to stop (they bank their current points)</li>
+                    </ul>
+
+                    <h3>Winning</h3>
+                    <p>Play 3 rounds. Highest total score wins!</p>
+                </div>
+                <button class="btn-secondary" id="btn-back-rules">Back</button>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
