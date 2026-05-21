@@ -303,6 +303,8 @@ class Game {
             document.getElementById('btn-flip').disabled = true;
             this.applyPendingCards(player.pendingCards.slice(), 0);
             player.pendingCards = [];
+        } else {
+            this.flipCard();
         }
     }
 

@@ -325,6 +325,14 @@ class OnlineGame {
             this.applyOnlinePendingCards(room);
         }
 
+        if (isMyTurn && currentCards.length === 0 && !hasPending && !this._autoFlipped) {
+            this._autoFlipped = true;
+            setTimeout(() => this.onlineFlip(), 500);
+        }
+        if (!isMyTurn || currentCards.length > 0) {
+            this._autoFlipped = false;
+        }
+
         const scoreboard = document.getElementById('online-scoreboard');
         scoreboard.innerHTML = turnOrder.map((id, i) => {
             const p = players[id];
