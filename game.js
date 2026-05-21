@@ -61,12 +61,18 @@ class Game {
         document.getElementById('btn-minus').addEventListener('click', () => this.changePlayerCount(-1));
         document.getElementById('btn-plus').addEventListener('click', () => this.changePlayerCount(1));
         document.getElementById('btn-start').addEventListener('click', () => this.startGame());
+        document.getElementById('btn-play-online').addEventListener('click', () => this.showOnlineMenu());
         document.getElementById('btn-rules').addEventListener('click', () => this.showScreen('rules'));
         document.getElementById('btn-back-rules').addEventListener('click', () => this.showScreen('menu'));
         document.getElementById('btn-flip').addEventListener('click', () => this.flipCard());
         document.getElementById('btn-stop').addEventListener('click', () => this.stopTurn());
         document.getElementById('btn-next-round').addEventListener('click', () => this.nextRound());
         document.getElementById('btn-play-again').addEventListener('click', () => this.showScreen('menu'));
+    }
+
+    showOnlineMenu() {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('online-screen').classList.add('active');
     }
 
     changePlayerCount(delta) {
