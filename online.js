@@ -379,7 +379,7 @@ class OnlineGame {
 
         const currentTurnIndex = room.currentTurnIndex || 0;
         const targets = turnOrder
-            .filter((id, i) => i > currentTurnIndex && !frozenPlayers[id])
+            .filter((id, i) => i >= currentTurnIndex && !frozenPlayers[id])
             .map(id => ({ id, name: players[id].name }));
 
         if (targets.length === 0) {
@@ -405,8 +405,23 @@ class OnlineGame {
                 updates['frozenPlayers/' + targetId] = true;
                 updates.freezeChoice = null;
                 updates.statusMessage = `❄️ ${players[targetId].name} is frozen!`;
-                await this.roomRef.update(updates);
-                modal.remove();
+
+                if (targetId === this.playerId) {
+                    const currentCards = room.currentCards || [];
+                    let score = 0;
+                    for (const c of currentCards) {
+                        if (c.type === 'number') score += c.value;
+                        else if (c.subtype === 'plus2') score += 2;
+                        else if (c.subtype === 'plus4') score += 4;
+                    }
+                    updates['roundScores/' + this.playerId] = score;
+                    await this.roomRef.update(updates);
+                    modal.remove();
+                    setTimeout(() => this.advanceTurn(room), 1500);
+                } else {
+                    await this.roomRef.update(updates);
+                    modal.remove();
+                }
             });
         });
     }

@@ -209,7 +209,7 @@ class Game {
     showFreezeModal() {
         const otherPlayers = this.players
             .map((p, i) => ({ ...p, index: i }))
-            .filter(p => p.index > this.currentPlayerIndex && !this.frozenPlayers.has(p.index));
+            .filter(p => p.index >= this.currentPlayerIndex && !this.frozenPlayers.has(p.index));
 
         if (otherPlayers.length === 0) {
             document.getElementById('status-message').textContent = '❄️ No one to freeze!';
@@ -234,7 +234,11 @@ class Game {
                 this.frozenPlayers.add(idx);
                 document.getElementById('status-message').textContent = `❄️ ${this.players[idx].name} is frozen!`;
                 modal.remove();
-                this.turnActive = true;
+                if (idx === this.currentPlayerIndex) {
+                    this.bankScore(false);
+                } else {
+                    this.turnActive = true;
+                }
             });
         });
     }
