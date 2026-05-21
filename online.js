@@ -340,12 +340,12 @@ class OnlineGame {
                     else if (c.subtype === 'plus2') score += 2;
                     else if (c.subtype === 'plus4') score += 4;
                 }
-                score *= 2;
+                score += 15;
 
                 const updates = {
                     deckIndex: deckIndex + 1,
                     currentCards: currentCards,
-                    statusMessage: '🎉 7 NUMBER CARDS! Score doubled!'
+                    statusMessage: '🎉 7 NUMBER CARDS! +15 bonus!'
                 };
                 updates['roundScores/' + this.playerId] = score;
                 await this.roomRef.update(updates);
@@ -530,8 +530,8 @@ class OnlineGame {
                         else if (c.subtype === 'plus2') score += 2;
                         else if (c.subtype === 'plus4') score += 4;
                     }
-                    score *= 2;
-                    updates.statusMessage = '🎉 7 NUMBER CARDS! Score doubled!';
+                    score += 15;
+                    updates.statusMessage = '🎉 7 NUMBER CARDS! +15 bonus!';
                     updates['roundScores/' + this.playerId] = score;
                     await this.roomRef.update(updates);
                     setTimeout(() => this.advanceTurn(freshRoom), 2000);
@@ -604,8 +604,8 @@ class OnlineGame {
                     else if (c.subtype === 'plus2') score += 2;
                     else if (c.subtype === 'plus4') score += 4;
                 }
-                score *= 2;
-                updates.statusMessage = '🎉 7 NUMBER CARDS from Flip 3! Score doubled!';
+                score += 15;
+                updates.statusMessage = '🎉 7 NUMBER CARDS from Flip 3! +15 bonus!';
                 updates['roundScores/' + this.playerId] = score;
                 await this.roomRef.update(updates);
                 this._applyingPending = false;

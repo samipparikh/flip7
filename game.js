@@ -244,7 +244,7 @@ class Game {
             if (this.turnActive === false && document.getElementById('btn-flip').disabled) {
                 const numberCount = this.currentCards.filter(c => c.type === 'number').length;
                 if (numberCount >= 7) {
-                    document.getElementById('status-message').textContent = '🎉 7 CARDS! Score doubled!';
+                    document.getElementById('status-message').textContent = '🎉 7 CARDS! +15 bonus!';
                     document.getElementById('btn-stop').disabled = true;
                     setTimeout(() => this.bankScore(true), 1500);
                     return;
@@ -330,7 +330,7 @@ class Game {
         this.updateCurrentScore();
 
         if (this.currentCards.filter(c => c.type === 'number').length >= 7) {
-            document.getElementById('status-message').textContent = '🎉 7 CARDS! Score doubled!';
+            document.getElementById('status-message').textContent = '🎉 7 CARDS! +15 bonus!';
             this.turnActive = false;
             document.getElementById('btn-flip').disabled = true;
             document.getElementById('btn-stop').disabled = true;
@@ -508,7 +508,7 @@ class Game {
             this.updateCurrentScore();
             document.getElementById('status-message').textContent = '';
             if (this.currentCards.filter(c => c.type === 'number').length >= 7) {
-                document.getElementById('status-message').textContent = '🎉 7 CARDS! Score doubled!';
+                document.getElementById('status-message').textContent = '🎉 7 CARDS! +15 bonus!';
                 this.turnActive = false;
                 document.getElementById('btn-flip').disabled = true;
                 document.getElementById('btn-stop').disabled = true;
@@ -646,11 +646,11 @@ class Game {
 
     bankScore(isSevenBonus) {
         let score = this.calculateScore();
-        if (isSevenBonus) score *= 2;
+        if (isSevenBonus) score += 15;
 
         this.players[this.currentPlayerIndex].roundScore = score;
         document.getElementById('status-message').textContent =
-            isSevenBonus ? `🎉 Banked ${score} points (doubled!)` : `✓ Banked ${score} points`;
+            isSevenBonus ? `🎉 Banked ${score} points (+15 bonus!)` : `✓ Banked ${score} points`;
 
         setTimeout(() => {
             this.currentPlayerIndex++;
