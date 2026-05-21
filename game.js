@@ -179,7 +179,7 @@ class Game {
 
         this.updateCurrentScore();
 
-        if (this.currentCards.filter(c => true).length >= 7) {
+        if (this.currentCards.filter(c => c.type === 'number').length >= 7) {
             document.getElementById('status-message').textContent = '🎉 7 CARDS! Score doubled!';
             this.turnActive = false;
             document.getElementById('btn-flip').disabled = true;
@@ -287,9 +287,9 @@ class Game {
 
     updateCurrentScore() {
         const score = this.calculateScore();
-        const cardCount = this.currentCards.length;
+        const numberCount = this.currentCards.filter(c => c.type === 'number').length;
         document.getElementById('current-points').textContent = score;
-        document.getElementById('card-count-display').textContent = `(${cardCount} card${cardCount !== 1 ? 's' : ''})`;
+        document.getElementById('card-count-display').textContent = `(${numberCount}/7 number cards)`;
     }
 
     stopTurn() {
