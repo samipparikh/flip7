@@ -102,8 +102,12 @@ class Game {
     }
 
     showOnlineMenu() {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById('online-screen').classList.add('active');
+        if (typeof onlineGame !== 'undefined') {
+            onlineGame.showOnlineScreen();
+        } else {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('online-screen').classList.add('active');
+        }
     }
 
     showDeckSettings() {

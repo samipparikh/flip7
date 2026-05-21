@@ -7,6 +7,7 @@ class OnlineGame {
         this.playerName = null;
         this.isHost = false;
         this.unsubscribers = [];
+        this.activeGamesListener = null;
 
         this.screens = {
             menu: document.getElementById('menu-screen'),
@@ -23,7 +24,7 @@ class OnlineGame {
     bindEvents() {
         document.getElementById('btn-create-room').addEventListener('click', () => this.showCreateRoom());
         document.getElementById('btn-join-room').addEventListener('click', () => this.showJoinRoom());
-        document.getElementById('btn-back-online').addEventListener('click', () => this.showScreen('menu'));
+        document.getElementById('btn-back-online').addEventListener('click', () => { this.stopListeningForActiveGames(); this.showScreen('menu'); });
         document.getElementById('btn-confirm-create').addEventListener('click', () => this.createRoom());
         document.getElementById('btn-confirm-join').addEventListener('click', () => this.joinRoom());
         document.getElementById('btn-start-online').addEventListener('click', () => this.startOnlineGame());
@@ -43,6 +44,11 @@ class OnlineGame {
         }
     }
 
+    showOnlineScreen() {
+        this.showScreen('online');
+        this.startListeningForActiveGames();
+    }
+
     showCreateRoom() {
         document.getElementById('online-mode-title').textContent = 'Create Room';
         document.getElementById('join-code-group').style.display = 'none';
@@ -57,6 +63,61 @@ class OnlineGame {
         document.getElementById('btn-confirm-create').style.display = 'none';
         document.getElementById('btn-confirm-join').style.display = 'block';
         this.showScreen('online');
+    }
+
+    startListeningForActiveGames() {
+        if (this.activeGamesListener) return;
+
+        const roomsRef = this.db.ref('rooms');
+        this.activeGamesListener = roomsRef.orderByChild('state').equalTo('lobby').on('value', (snapshot) => {
+            const container = document.getElementById('active-games-list');
+            if (!snapshot.exists()) {
+                container.innerHTML = '<p class="no-games">No active games right now</p>';
+                return;
+            }
+
+            const rooms = snapshot.val();
+            const entries = Object.entries(rooms).filter(([code, room]) => {
+                const playerCount = Object.keys(room.players || {}).length;
+                return playerCount < 6;
+            });
+
+            if (entries.length === 0) {
+                container.innerHTML = '<p class="no-games">No active games right now</p>';
+                return;
+            }
+
+            container.innerHTML = entries.map(([code, room]) => {
+                const players = room.players || {};
+                const playerCount = Object.keys(players).length;
+                const hostPlayer = Object.values(players).find((p, i) => Object.keys(players)[i] === room.host);
+                const hostName = hostPlayer ? hostPlayer.name : 'Unknown';
+                return `
+                    <div class="active-game-card" data-code="${code}">
+                        <div class="active-game-info">
+                            <span class="active-game-code">${code}</span>
+                            <span class="active-game-host">Host: ${hostName}</span>
+                        </div>
+                        <div class="active-game-players">${playerCount}/6 players</div>
+                    </div>
+                `;
+            }).join('');
+
+            container.querySelectorAll('.active-game-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const code = card.dataset.code;
+                    document.getElementById('join-code-input').value = code;
+                    this.showJoinRoom();
+                });
+            });
+        });
+    }
+
+    stopListeningForActiveGames() {
+        if (this.activeGamesListener) {
+            this.db.ref('rooms').off('value', this.activeGamesListener);
+            this.activeGamesListener = null;
+        }
     }
 
     generateRoomCode() {
