@@ -64,6 +64,7 @@ class Game {
             game: document.getElementById('game-screen'),
             roundEnd: document.getElementById('round-end-screen'),
             gameOver: document.getElementById('game-over-screen'),
+            feedback: document.getElementById('feedback-screen'),
             rules: document.getElementById('rules-screen'),
             deckSettings: document.getElementById('deck-settings-screen'),
         };
@@ -89,6 +90,9 @@ class Game {
         document.getElementById('btn-deck-settings').addEventListener('click', () => this.showDeckSettings());
         document.getElementById('btn-back-deck').addEventListener('click', () => this.showScreen('menu'));
         document.getElementById('btn-reset-deck').addEventListener('click', () => this.resetDeckSettings());
+        document.getElementById('btn-feedback').addEventListener('click', () => this.showScreen('feedback'));
+        document.getElementById('btn-back-feedback').addEventListener('click', () => this.showScreen('menu'));
+        document.getElementById('btn-submit-feedback').addEventListener('click', () => this.submitFeedback());
         document.getElementById('btn-rules').addEventListener('click', () => this.showScreen('rules'));
         document.getElementById('btn-back-rules').addEventListener('click', () => this.showScreen('menu'));
         document.getElementById('btn-flip').addEventListener('click', () => this.flipCard());
@@ -148,6 +152,28 @@ class Game {
         }
         saveDeckSettings();
         this.renderDeckSettings();
+    }
+
+    submitFeedback() {
+        const description = document.getElementById('feedback-description').value.trim();
+        const steps = document.getElementById('feedback-steps').value.trim();
+        const category = document.getElementById('feedback-category').value;
+
+        if (!description) {
+            alert('Please describe the bug.');
+            return;
+        }
+
+        const title = `[Bug] [${category}] ${description.substring(0, 60)}`;
+        const body = `**Category:** ${category}\n\n**Description:**\n${description}\n\n**Steps to reproduce:**\n${steps || 'N/A'}\n\n**Browser:** ${navigator.userAgent}`;
+
+        const url = `https://github.com/samipparikh/flip7/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}&labels=bug`;
+        window.open(url, '_blank');
+
+        document.getElementById('feedback-description').value = '';
+        document.getElementById('feedback-steps').value = '';
+        document.getElementById('feedback-category').value = 'gameplay';
+        this.showScreen('menu');
     }
 
     changePlayerCount(delta) {
