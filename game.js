@@ -9,11 +9,12 @@ function buildDeck() {
             cards.push({ type: 'number', value: n });
         }
     }
-    // Special cards (38 total)
+    // Special cards (46 total)
     for (let i = 0; i < 14; i++) cards.push({ type: 'special', subtype: 'plus2', label: '+2', icon: '⭐' });
     for (let i = 0; i < 6; i++) cards.push({ type: 'special', subtype: 'plus4', label: '+4', icon: '💎' });
     for (let i = 0; i < 10; i++) cards.push({ type: 'special', subtype: 'second_chance', label: '2nd Chance', icon: '🛡️' });
     for (let i = 0; i < 8; i++) cards.push({ type: 'special', subtype: 'freeze', label: 'Freeze', icon: '❄️' });
+    for (let i = 0; i < 8; i++) cards.push({ type: 'special', subtype: 'flip3', label: 'Flip 3', icon: '🎯' });
     return cards;
 }
 
@@ -139,6 +140,67 @@ class Game {
         document.getElementById('btn-stop').disabled = true;
         document.getElementById('deck-remaining').textContent = this.deck.length;
         this.updateScoreboard();
+
+        if (player.pendingCards && player.pendingCards.length > 0) {
+            this.turnActive = false;
+            document.getElementById('btn-flip').disabled = true;
+            this.applyPendingCards(player.pendingCards.slice(), 0);
+            player.pendingCards = [];
+        }
+    }
+
+    applyPendingCards(cards, index) {
+        if (index >= cards.length) {
+            if (this.turnActive === false && document.getElementById('btn-flip').disabled) {
+                const numberCount = this.currentCards.filter(c => c.type === 'number').length;
+                if (numberCount >= 7) {
+                    document.getElementById('status-message').textContent = '🎉 7 CARDS! Score doubled!';
+                    document.getElementById('btn-stop').disabled = true;
+                    setTimeout(() => this.bankScore(true), 1500);
+                    return;
+                }
+                this.turnActive = true;
+                document.getElementById('btn-flip').disabled = false;
+                if (this.currentCards.length > 0) {
+                    document.getElementById('btn-stop').disabled = false;
+                }
+                this.updateCurrentScore();
+                document.getElementById('status-message').textContent = '';
+            }
+            return;
+        }
+
+        const card = cards[index];
+        document.getElementById('deck-remaining').textContent = this.deck.length;
+
+        if (card.type === 'number') {
+            const isDuplicate = this.currentCards.some(c => c.type === 'number' && c.value === card.value);
+            if (isDuplicate) {
+                if (this.hasSecondChance) {
+                    this.hasSecondChance = false;
+                    this.renderCard(card, true);
+                    document.getElementById('status-message').textContent = '🛡️ Second Chance saved you!';
+                    setTimeout(() => {
+                        const container = document.getElementById('flipped-cards');
+                        const lastCard = container.lastElementChild;
+                        if (lastCard) lastCard.remove();
+                        setTimeout(() => this.applyPendingCards(cards, index + 1), 500);
+                    }, 1000);
+                    return;
+                }
+                this.bust(card);
+                return;
+            }
+            this.currentCards.push(card);
+            this.renderCard(card);
+        } else {
+            this.currentCards.push(card);
+            this.renderCard(card);
+            this.handleSpecialCard(card);
+        }
+
+        this.updateCurrentScore();
+        setTimeout(() => this.applyPendingCards(cards, index + 1), 800);
     }
 
     flipCard() {
@@ -203,7 +265,116 @@ class Game {
             case 'freeze':
                 this.showFreezeModal();
                 break;
+            case 'flip3':
+                this.showFlip3Modal();
+                break;
         }
+    }
+
+    showFlip3Modal() {
+        const eligiblePlayers = this.players
+            .map((p, i) => ({ ...p, index: i }))
+            .filter(p => p.index >= this.currentPlayerIndex && !this.frozenPlayers.has(p.index));
+
+        if (eligiblePlayers.length === 0) {
+            document.getElementById('status-message').textContent = '🎯 No one to target!';
+            return;
+        }
+
+        this.turnActive = false;
+        const modal = document.createElement('div');
+        modal.className = 'freeze-modal';
+        modal.innerHTML = `
+            <div class="freeze-modal-content">
+                <h3>🎯 Flip 3 — Choose Target!</h3>
+                <p style="color:#a0a0b0;margin-bottom:16px">Draw 3 cards for the target player.</p>
+                ${eligiblePlayers.map(p => `<button class="freeze-btn" data-index="${p.index}">${p.name}${p.index === this.currentPlayerIndex ? ' (You)' : ''}</button>`).join('')}
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        modal.querySelectorAll('.freeze-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.index);
+                modal.remove();
+                this.executeFlip3(idx);
+            });
+        });
+    }
+
+    executeFlip3(targetIndex) {
+        if (targetIndex === this.currentPlayerIndex) {
+            this.flip3ForSelf(3);
+        } else {
+            if (!this.players[targetIndex].pendingCards) {
+                this.players[targetIndex].pendingCards = [];
+            }
+            let cardsDrawn = 0;
+            const drawNext = () => {
+                if (cardsDrawn >= 3 || this.deck.length === 0) {
+                    document.getElementById('status-message').textContent =
+                        `🎯 ${this.players[targetIndex].name} will start with ${this.players[targetIndex].pendingCards.length} card(s)!`;
+                    this.turnActive = true;
+                    return;
+                }
+                const card = this.deck.pop();
+                document.getElementById('deck-remaining').textContent = this.deck.length;
+                this.players[targetIndex].pendingCards.push(card);
+                cardsDrawn++;
+                document.getElementById('status-message').textContent =
+                    `🎯 Drew ${card.type === 'number' ? card.value : card.label} for ${this.players[targetIndex].name} (${cardsDrawn}/3)`;
+                setTimeout(drawNext, 800);
+            };
+            drawNext();
+        }
+    }
+
+    flip3ForSelf(remaining) {
+        if (remaining <= 0 || this.deck.length === 0) {
+            this.turnActive = true;
+            this.updateCurrentScore();
+            document.getElementById('status-message').textContent = '';
+            if (this.currentCards.filter(c => c.type === 'number').length >= 7) {
+                document.getElementById('status-message').textContent = '🎉 7 CARDS! Score doubled!';
+                this.turnActive = false;
+                document.getElementById('btn-flip').disabled = true;
+                document.getElementById('btn-stop').disabled = true;
+                setTimeout(() => this.bankScore(true), 1500);
+            }
+            return;
+        }
+
+        const card = this.deck.pop();
+        document.getElementById('deck-remaining').textContent = this.deck.length;
+
+        if (card.type === 'number') {
+            const isDuplicate = this.currentCards.some(c => c.type === 'number' && c.value === card.value);
+            if (isDuplicate) {
+                if (this.hasSecondChance) {
+                    this.hasSecondChance = false;
+                    this.renderCard(card, true);
+                    document.getElementById('status-message').textContent = '🛡️ Second Chance saved you!';
+                    setTimeout(() => {
+                        const container = document.getElementById('flipped-cards');
+                        const lastCard = container.lastElementChild;
+                        if (lastCard) lastCard.remove();
+                        setTimeout(() => this.flip3ForSelf(remaining - 1), 500);
+                    }, 1000);
+                    return;
+                }
+                this.bust(card);
+                return;
+            }
+            this.currentCards.push(card);
+            this.renderCard(card);
+        } else {
+            this.currentCards.push(card);
+            this.renderCard(card);
+            this.handleSpecialCard(card);
+        }
+
+        this.updateCurrentScore();
+        setTimeout(() => this.flip3ForSelf(remaining - 1), 800);
     }
 
     showFreezeModal() {

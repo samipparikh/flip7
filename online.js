@@ -258,10 +258,16 @@ class OnlineGame {
         document.getElementById('online-current-points').textContent = score;
         document.getElementById('online-card-count').textContent = `(${numberCount}/7 number cards)`;
 
-        document.getElementById('btn-online-flip').disabled = !isMyTurn;
-        document.getElementById('btn-online-stop').disabled = !isMyTurn || currentCards.length === 0;
+        const hasPending = room.pendingCards && room.pendingCards[this.playerId] && isMyTurn && currentCards.length === 0;
+        document.getElementById('btn-online-flip').disabled = !isMyTurn || hasPending;
+        document.getElementById('btn-online-stop').disabled = !isMyTurn || currentCards.length === 0 || hasPending;
 
         document.getElementById('online-status-message').textContent = room.statusMessage || '';
+
+        if (hasPending && !this._applyingPending) {
+            this._applyingPending = true;
+            this.applyOnlinePendingCards(room);
+        }
 
         const scoreboard = document.getElementById('online-scoreboard');
         scoreboard.innerHTML = turnOrder.map((id, i) => {
@@ -276,6 +282,10 @@ class OnlineGame {
 
         if (room.freezeChoice && room.freezeChoice.chooser === this.playerId && !room.freezeChoice.chosen) {
             this.showOnlineFreezeModal(room);
+        }
+
+        if (room.flip3Choice && room.flip3Choice.chooser === this.playerId && !room.flip3Choice.chosen) {
+            this.showOnlineFlip3Modal(room);
         }
     }
 
@@ -362,6 +372,9 @@ class OnlineGame {
             } else if (card.subtype === 'freeze') {
                 updates.freezeChoice = { chooser: this.playerId, chosen: null };
                 updates.statusMessage = '❄️ Choose a player to freeze!';
+            } else if (card.subtype === 'flip3') {
+                updates.flip3Choice = { chooser: this.playerId, chosen: null };
+                updates.statusMessage = '🎯 Choose a target for Flip 3!';
             } else {
                 updates.statusMessage = '';
             }
@@ -424,6 +437,185 @@ class OnlineGame {
                 }
             });
         });
+    }
+
+    showOnlineFlip3Modal(room) {
+        if (document.querySelector('.freeze-modal')) return;
+
+        const turnOrder = room.turnOrder || [];
+        const players = room.players || {};
+        const frozenPlayers = room.frozenPlayers || {};
+        const currentTurnIndex = room.currentTurnIndex || 0;
+
+        const targets = turnOrder
+            .filter((id, i) => i >= currentTurnIndex && !frozenPlayers[id])
+            .map(id => ({ id, name: players[id].name }));
+
+        if (targets.length === 0) {
+            this.roomRef.update({ flip3Choice: null, statusMessage: '🎯 No one to target!' });
+            return;
+        }
+
+        const modal = document.createElement('div');
+        modal.className = 'freeze-modal';
+        modal.innerHTML = `
+            <div class="freeze-modal-content">
+                <h3>🎯 Flip 3 — Choose Target!</h3>
+                <p style="color:#a0a0b0;margin-bottom:16px">Draw 3 cards for the target player.</p>
+                ${targets.map(t => `<button class="freeze-btn" data-id="${t.id}">${t.name}${t.id === this.playerId ? ' (You)' : ''}</button>`).join('')}
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        modal.querySelectorAll('.freeze-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const targetId = btn.dataset.id;
+                modal.remove();
+                await this.executeOnlineFlip3(targetId, room);
+            });
+        });
+    }
+
+    async executeOnlineFlip3(targetId, room) {
+        const snapshot = await this.roomRef.once('value');
+        const freshRoom = snapshot.val();
+        let deckIndex = freshRoom.deckIndex || 0;
+        const deck = freshRoom.deck || [];
+        const currentCards = freshRoom.currentCards || [];
+        const hasSecondChance = freshRoom.hasSecondChance || false;
+
+        if (targetId === this.playerId) {
+            let busted = false;
+            let secondChance = hasSecondChance;
+            for (let i = 0; i < 3 && deckIndex < deck.length; i++) {
+                const card = deck[deckIndex];
+                deckIndex++;
+
+                if (card.type === 'number') {
+                    const isDuplicate = currentCards.some(c => c.type === 'number' && c.value === card.value && !c.bust);
+                    if (isDuplicate) {
+                        if (secondChance) {
+                            secondChance = false;
+                            continue;
+                        }
+                        currentCards.push({ ...card, bust: true });
+                        busted = true;
+                        break;
+                    }
+                    currentCards.push(card);
+                } else {
+                    currentCards.push(card);
+                    if (card.subtype === 'second_chance') secondChance = true;
+                }
+            }
+
+            const updates = {
+                deckIndex: deckIndex,
+                currentCards: currentCards,
+                hasSecondChance: secondChance,
+                flip3Choice: null,
+            };
+
+            if (busted) {
+                updates.statusMessage = '💥 BUST from Flip 3! Scored 0 this round.';
+                updates['roundScores/' + this.playerId] = 0;
+                await this.roomRef.update(updates);
+                setTimeout(() => this.advanceTurn(freshRoom), 2000);
+            } else {
+                const numberCount = currentCards.filter(c => c.type === 'number').length;
+                if (numberCount >= 7) {
+                    let score = 0;
+                    for (const c of currentCards) {
+                        if (c.type === 'number') score += c.value;
+                        else if (c.subtype === 'plus2') score += 2;
+                        else if (c.subtype === 'plus4') score += 4;
+                    }
+                    score *= 2;
+                    updates.statusMessage = '🎉 7 NUMBER CARDS! Score doubled!';
+                    updates['roundScores/' + this.playerId] = score;
+                    await this.roomRef.update(updates);
+                    setTimeout(() => this.advanceTurn(freshRoom), 2000);
+                } else {
+                    updates.statusMessage = '🎯 Flip 3 complete!';
+                    await this.roomRef.update(updates);
+                }
+            }
+        } else {
+            const pendingCards = [];
+            for (let i = 0; i < 3 && deckIndex < deck.length; i++) {
+                pendingCards.push(deck[deckIndex]);
+                deckIndex++;
+            }
+            const updates = {
+                deckIndex: deckIndex,
+                flip3Choice: null,
+                statusMessage: `🎯 ${(room.players[targetId] || {}).name} will start with 3 cards!`,
+            };
+            updates['pendingCards/' + targetId] = pendingCards;
+            await this.roomRef.update(updates);
+        }
+    }
+
+    async applyOnlinePendingCards(room) {
+        const pending = room.pendingCards[this.playerId];
+        const deck = room.deck || [];
+        let deckIndex = room.deckIndex || 0;
+        const currentCards = [];
+        let hasSecondChance = false;
+        let busted = false;
+
+        for (const card of pending) {
+            if (card.type === 'number') {
+                const isDuplicate = currentCards.some(c => c.type === 'number' && c.value === card.value && !c.bust);
+                if (isDuplicate) {
+                    if (hasSecondChance) {
+                        hasSecondChance = false;
+                        continue;
+                    }
+                    currentCards.push({ ...card, bust: true });
+                    busted = true;
+                    break;
+                }
+                currentCards.push(card);
+            } else {
+                currentCards.push(card);
+                if (card.subtype === 'second_chance') hasSecondChance = true;
+            }
+        }
+
+        const updates = {
+            currentCards: currentCards,
+            hasSecondChance: hasSecondChance,
+        };
+        updates['pendingCards/' + this.playerId] = null;
+
+        if (busted) {
+            updates.statusMessage = '💥 BUST from Flip 3 cards! Scored 0 this round.';
+            updates['roundScores/' + this.playerId] = 0;
+            await this.roomRef.update(updates);
+            this._applyingPending = false;
+            setTimeout(() => this.advanceTurn(room), 2000);
+        } else {
+            const numberCount = currentCards.filter(c => c.type === 'number').length;
+            if (numberCount >= 7) {
+                let score = 0;
+                for (const c of currentCards) {
+                    if (c.type === 'number') score += c.value;
+                    else if (c.subtype === 'plus2') score += 2;
+                    else if (c.subtype === 'plus4') score += 4;
+                }
+                score *= 2;
+                updates.statusMessage = '🎉 7 NUMBER CARDS from Flip 3! Score doubled!';
+                updates['roundScores/' + this.playerId] = score;
+                await this.roomRef.update(updates);
+                this._applyingPending = false;
+                setTimeout(() => this.advanceTurn(room), 2000);
+            } else {
+                updates.statusMessage = '🎯 Starting with Flip 3 cards!';
+                await this.roomRef.update(updates);
+                this._applyingPending = false;
+            }
+        }
     }
 
     async onlineStop() {
