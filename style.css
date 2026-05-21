@@ -315,6 +315,26 @@ body {
     font-size: 0.9rem;
 }
 
+.bust-probability {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    min-height: 24px;
+    transition: color 0.3s;
+}
+
+.bust-probability.bust-low {
+    color: #4ecdc4;
+}
+
+.bust-probability.bust-medium {
+    color: #ffd93d;
+}
+
+.bust-probability.bust-high {
+    color: #ff4757;
+}
+
 .action-buttons {
     display: flex;
     gap: 16px;

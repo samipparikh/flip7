@@ -4,6 +4,7 @@ const SEVEN_CARD_BONUS = true;
 const SPECIAL_CARD_DEFAULTS = {
     plus2: { label: '+2', icon: '⭐', count: 14 },
     plus4: { label: '+4', icon: '💎', count: 6 },
+    x2: { label: 'x2', icon: '💥', count: 1 },
     second_chance: { label: '2nd Chance', icon: '🛡️', count: 10 },
     freeze: { label: 'Freeze', icon: '❄️', count: 8 },
     flip3: { label: 'Flip 3', icon: '🎯', count: 8 },
@@ -47,6 +48,24 @@ function buildDeck() {
 }
 
 loadDeckSettings();
+
+function calcScore(cards) {
+    let score = 0;
+    let hasX2 = false;
+    for (const card of cards) {
+        if (card.type === 'number' && !card.bust) {
+            score += card.value;
+        } else if (card.subtype === 'plus2') {
+            score += 2;
+        } else if (card.subtype === 'plus4') {
+            score += 4;
+        } else if (card.subtype === 'x2') {
+            hasX2 = true;
+        }
+    }
+    if (hasX2) score *= 2;
+    return score;
+}
 
 function shuffle(arr) {
     const a = [...arr];
@@ -216,7 +235,13 @@ class Game {
 
     startRound() {
         this.deck = shuffle(buildDeck());
-        this.currentPlayerIndex = 0;
+        const startPlayer = (this.currentRound - 1) % this.players.length;
+        this.turnOrder = [];
+        for (let i = 0; i < this.players.length; i++) {
+            this.turnOrder.push((startPlayer + i) % this.players.length);
+        }
+        this.turnOrderIndex = 0;
+        this.currentPlayerIndex = this.turnOrder[0];
         this.frozenPlayers = new Set();
         this.players.forEach(p => p.roundScore = 0);
         document.getElementById('current-round').textContent = this.currentRound;
@@ -225,16 +250,26 @@ class Game {
         this.startTurn();
     }
 
+    advanceToNextPlayer() {
+        this.turnOrderIndex++;
+        if (this.turnOrderIndex >= this.turnOrder.length) {
+            this.currentPlayerIndex = this.players.length;
+        } else {
+            this.currentPlayerIndex = this.turnOrder[this.turnOrderIndex];
+        }
+    }
+
     startTurn() {
-        if (this.currentPlayerIndex >= this.players.length) {
+        if (this.turnOrderIndex >= this.turnOrder.length) {
             this.endRound();
             return;
         }
 
+        this.currentPlayerIndex = this.turnOrder[this.turnOrderIndex];
         const player = this.players[this.currentPlayerIndex];
 
         if (this.frozenPlayers.has(this.currentPlayerIndex)) {
-            this.currentPlayerIndex++;
+            this.advanceToNextPlayer();
             this.startTurn();
             return;
         }
@@ -242,7 +277,7 @@ class Game {
         if (player.bustedByFlip3) {
             player.bustedByFlip3 = false;
             player.roundScore = 0;
-            this.currentPlayerIndex++;
+            this.advanceToNextPlayer();
             this.startTurn();
             return;
         }
@@ -255,6 +290,8 @@ class Game {
         document.getElementById('flipped-cards').innerHTML = '';
         document.getElementById('current-points').textContent = '0';
         document.getElementById('card-count-display').textContent = '(0 cards)';
+        document.getElementById('bust-probability').textContent = '';
+        document.getElementById('bust-probability').className = 'bust-probability';
         document.getElementById('status-message').textContent = '';
         document.getElementById('btn-flip').disabled = false;
         document.getElementById('btn-stop').disabled = true;
@@ -394,7 +431,10 @@ class Game {
     showFlip3Modal() {
         const eligiblePlayers = this.players
             .map((p, i) => ({ ...p, index: i }))
-            .filter(p => p.index >= this.currentPlayerIndex && !this.frozenPlayers.has(p.index));
+            .filter(p => {
+                const remainingPlayers = this.turnOrder.slice(this.turnOrderIndex);
+                return remainingPlayers.includes(p.index) && !this.frozenPlayers.has(p.index);
+            });
 
         if (eligiblePlayers.length === 0) {
             document.getElementById('status-message').textContent = '🎯 No one to target!';
@@ -583,7 +623,10 @@ class Game {
     showFreezeModal() {
         const otherPlayers = this.players
             .map((p, i) => ({ ...p, index: i }))
-            .filter(p => p.index >= this.currentPlayerIndex && !this.frozenPlayers.has(p.index));
+            .filter(p => {
+                const remainingPlayers = this.turnOrder.slice(this.turnOrderIndex);
+                return remainingPlayers.includes(p.index) && !this.frozenPlayers.has(p.index);
+            });
 
         if (otherPlayers.length === 0) {
             document.getElementById('status-message').textContent = '❄️ No one to freeze!';
@@ -642,13 +685,14 @@ class Game {
 
         setTimeout(() => {
             this.players[this.currentPlayerIndex].roundScore = 0;
-            this.currentPlayerIndex++;
+            this.advanceToNextPlayer();
             this.startTurn();
         }, 2000);
     }
 
     calculateScore() {
         let score = 0;
+        let hasX2 = false;
         for (const card of this.currentCards) {
             if (card.type === 'number') {
                 score += card.value;
@@ -656,8 +700,11 @@ class Game {
                 score += 2;
             } else if (card.subtype === 'plus4') {
                 score += 4;
+            } else if (card.subtype === 'x2') {
+                hasX2 = true;
             }
         }
+        if (hasX2) score *= 2;
         return score;
     }
 
@@ -666,6 +713,41 @@ class Game {
         const numberCount = this.currentCards.filter(c => c.type === 'number').length;
         document.getElementById('current-points').textContent = score;
         document.getElementById('card-count-display').textContent = `(${numberCount}/7 number cards)`;
+        this.updateBustProbability();
+    }
+
+    updateBustProbability() {
+        const numbersInHand = this.currentCards
+            .filter(c => c.type === 'number')
+            .map(c => c.value);
+
+        if (numbersInHand.length === 0) {
+            document.getElementById('bust-probability').textContent = '';
+            document.getElementById('bust-probability').className = 'bust-probability';
+            return;
+        }
+
+        const remaining = this.deck.length;
+        if (remaining === 0) return;
+
+        let bustCards = 0;
+        for (const card of this.deck) {
+            if (card.type === 'number' && numbersInHand.includes(card.value)) {
+                bustCards++;
+            }
+        }
+
+        const probability = Math.round((bustCards / remaining) * 100);
+        const el = document.getElementById('bust-probability');
+        el.textContent = `Bust risk: ${probability}%`;
+
+        if (probability <= 20) {
+            el.className = 'bust-probability bust-low';
+        } else if (probability <= 45) {
+            el.className = 'bust-probability bust-medium';
+        } else {
+            el.className = 'bust-probability bust-high';
+        }
     }
 
     stopTurn() {
@@ -683,7 +765,7 @@ class Game {
             isSevenBonus ? `🎉 Banked ${score} points (+15 bonus!)` : `✓ Banked ${score} points`;
 
         setTimeout(() => {
-            this.currentPlayerIndex++;
+            this.advanceToNextPlayer();
             this.startTurn();
         }, 1500);
     }

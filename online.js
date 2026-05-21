@@ -309,12 +309,7 @@ class OnlineGame {
             }
         }).join('');
 
-        let score = 0;
-        for (const card of currentCards) {
-            if (card.type === 'number' && !card.bust) score += card.value;
-            else if (card.subtype === 'plus2') score += 2;
-            else if (card.subtype === 'plus4') score += 4;
-        }
+        let score = calcScore(currentCards);
         const numberCount = currentCards.filter(c => c.type === 'number' && !c.bust).length;
         document.getElementById('online-current-points').textContent = score;
         document.getElementById('online-card-count').textContent = `(${numberCount}/7 number cards)`;
@@ -395,12 +390,7 @@ class OnlineGame {
             const numberCount = currentCards.filter(c => c.type === 'number').length;
 
             if (numberCount >= 7) {
-                let score = 0;
-                for (const c of currentCards) {
-                    if (c.type === 'number') score += c.value;
-                    else if (c.subtype === 'plus2') score += 2;
-                    else if (c.subtype === 'plus4') score += 4;
-                }
+                let score = calcScore(currentCards);
                 score += 15;
 
                 const updates = {
@@ -482,13 +472,7 @@ class OnlineGame {
 
                 if (targetId === this.playerId) {
                     const currentCards = room.currentCards || [];
-                    let score = 0;
-                    for (const c of currentCards) {
-                        if (c.type === 'number') score += c.value;
-                        else if (c.subtype === 'plus2') score += 2;
-                        else if (c.subtype === 'plus4') score += 4;
-                    }
-                    updates['roundScores/' + this.playerId] = score;
+                    updates['roundScores/' + this.playerId] = calcScore(currentCards);
                     await this.roomRef.update(updates);
                     modal.remove();
                     setTimeout(() => this.advanceTurn(room), 1500);
@@ -585,15 +569,8 @@ class OnlineGame {
             } else {
                 const numberCount = currentCards.filter(c => c.type === 'number').length;
                 if (numberCount >= 7) {
-                    let score = 0;
-                    for (const c of currentCards) {
-                        if (c.type === 'number') score += c.value;
-                        else if (c.subtype === 'plus2') score += 2;
-                        else if (c.subtype === 'plus4') score += 4;
-                    }
-                    score += 15;
                     updates.statusMessage = '🎉 7 NUMBER CARDS! +15 bonus!';
-                    updates['roundScores/' + this.playerId] = score;
+                    updates['roundScores/' + this.playerId] = calcScore(currentCards) + 15;
                     await this.roomRef.update(updates);
                     setTimeout(() => this.advanceTurn(freshRoom), 2000);
                 } else {
@@ -659,15 +636,8 @@ class OnlineGame {
         } else {
             const numberCount = currentCards.filter(c => c.type === 'number').length;
             if (numberCount >= 7) {
-                let score = 0;
-                for (const c of currentCards) {
-                    if (c.type === 'number') score += c.value;
-                    else if (c.subtype === 'plus2') score += 2;
-                    else if (c.subtype === 'plus4') score += 4;
-                }
-                score += 15;
                 updates.statusMessage = '🎉 7 NUMBER CARDS from Flip 3! +15 bonus!';
-                updates['roundScores/' + this.playerId] = score;
+                updates['roundScores/' + this.playerId] = calcScore(currentCards) + 15;
                 await this.roomRef.update(updates);
                 this._applyingPending = false;
                 setTimeout(() => this.advanceTurn(room), 2000);
@@ -688,12 +658,7 @@ class OnlineGame {
         if (currentPlayerId !== this.playerId) return;
 
         const currentCards = room.currentCards || [];
-        let score = 0;
-        for (const c of currentCards) {
-            if (c.type === 'number') score += c.value;
-            else if (c.subtype === 'plus2') score += 2;
-            else if (c.subtype === 'plus4') score += 4;
-        }
+        const score = calcScore(currentCards);
 
         const updates = {};
         updates['roundScores/' + this.playerId] = score;
@@ -781,14 +746,19 @@ class OnlineGame {
         const snapshot = await this.roomRef.once('value');
         const room = snapshot.val();
         const turnOrder = room.turnOrder || [];
+        const nextRound = (room.currentRound || 1) + 1;
         const deck = shuffle(buildDeck()).map((c, i) => ({ ...c, id: i }));
 
+        const rotateBy = (nextRound - 1) % turnOrder.length;
+        const rotatedOrder = [...turnOrder.slice(rotateBy), ...turnOrder.slice(0, rotateBy)];
+
         const roundScores = {};
-        turnOrder.forEach(id => { roundScores[id] = 0; });
+        rotatedOrder.forEach(id => { roundScores[id] = 0; });
 
         await this.roomRef.update({
             state: 'playing',
-            currentRound: (room.currentRound || 1) + 1,
+            currentRound: nextRound,
+            turnOrder: rotatedOrder,
             currentTurnIndex: 0,
             deck: deck,
             deckIndex: 0,
@@ -797,6 +767,8 @@ class OnlineGame {
             frozenPlayers: {},
             roundScores: roundScores,
             freezeChoice: null,
+            flip3Choice: null,
+            pendingCards: null,
             statusMessage: ''
         });
     }
