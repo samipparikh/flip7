@@ -3,25 +3,17 @@ const SEVEN_CARD_BONUS = true;
 
 function buildDeck() {
     const cards = [];
-    // Number cards: one 1, two 2s, three 3s, four 4s, five 5s, six 6s, seven 7s = 28 number cards
-    for (let n = 1; n <= 7; n++) {
+    // Number cards: 1-12, quantity equals the value (1×1, 2×2, ... 12×12) = 78 cards
+    for (let n = 1; n <= 12; n++) {
         for (let i = 0; i < n; i++) {
             cards.push({ type: 'number', value: n });
         }
     }
-    // Duplicate set for more cards in the deck (total 56 number cards)
-    for (let n = 1; n <= 7; n++) {
-        for (let i = 0; i < n; i++) {
-            cards.push({ type: 'number', value: n });
-        }
-    }
-    // Special cards (38 total to reach ~94 cards)
-    for (let i = 0; i < 10; i++) cards.push({ type: 'special', subtype: 'plus2', label: '+2', icon: '⭐' });
+    // Special cards (38 total)
+    for (let i = 0; i < 14; i++) cards.push({ type: 'special', subtype: 'plus2', label: '+2', icon: '⭐' });
     for (let i = 0; i < 6; i++) cards.push({ type: 'special', subtype: 'plus4', label: '+4', icon: '💎' });
     for (let i = 0; i < 10; i++) cards.push({ type: 'special', subtype: 'second_chance', label: '2nd Chance', icon: '🛡️' });
     for (let i = 0; i < 8; i++) cards.push({ type: 'special', subtype: 'freeze', label: 'Freeze', icon: '❄️' });
-    // 56 + 34 = 90 cards... add a few more bonus cards
-    for (let i = 0; i < 4; i++) cards.push({ type: 'special', subtype: 'plus2', label: '+2', icon: '⭐' });
     return cards;
 }
 
@@ -217,7 +209,7 @@ class Game {
     showFreezeModal() {
         const otherPlayers = this.players
             .map((p, i) => ({ ...p, index: i }))
-            .filter(p => p.index !== this.currentPlayerIndex && !this.frozenPlayers.has(p.index));
+            .filter(p => p.index > this.currentPlayerIndex && !this.frozenPlayers.has(p.index));
 
         if (otherPlayers.length === 0) {
             document.getElementById('status-message').textContent = '❄️ No one to freeze!';

@@ -377,8 +377,9 @@ class OnlineGame {
         const players = room.players || {};
         const frozenPlayers = room.frozenPlayers || {};
 
+        const currentTurnIndex = room.currentTurnIndex || 0;
         const targets = turnOrder
-            .filter(id => id !== this.playerId && !frozenPlayers[id])
+            .filter((id, i) => i > currentTurnIndex && !frozenPlayers[id])
             .map(id => ({ id, name: players[id].name }));
 
         if (targets.length === 0) {
