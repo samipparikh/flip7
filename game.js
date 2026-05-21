@@ -209,6 +209,14 @@ class Game {
             return;
         }
 
+        if (player.bustedByFlip3) {
+            player.bustedByFlip3 = false;
+            player.roundScore = 0;
+            this.currentPlayerIndex++;
+            this.startTurn();
+            return;
+        }
+
         this.currentCards = [];
         this.hasSecondChance = false;
         this.turnActive = true;
@@ -388,26 +396,109 @@ class Game {
         if (targetIndex === this.currentPlayerIndex) {
             this.flip3ForSelf(3);
         } else {
-            if (!this.players[targetIndex].pendingCards) {
-                this.players[targetIndex].pendingCards = [];
-            }
+            const originalPlayer = this.currentPlayerIndex;
+            const originalCards = this.currentCards;
+            const originalSecondChance = this.hasSecondChance;
+
+            // Switch focus to target player
+            const target = this.players[targetIndex];
+            if (!target.flip3Cards) target.flip3Cards = [];
+            this.hasSecondChance = false;
+
+            document.getElementById('current-player-name').textContent = `🎯 ${target.name} (Flip 3)`;
+            document.getElementById('flipped-cards').innerHTML = '';
+            document.getElementById('current-points').textContent = '0';
+            document.getElementById('card-count-display').textContent = '(0/7 number cards)';
+            document.getElementById('btn-flip').disabled = true;
+            document.getElementById('btn-stop').disabled = true;
+
             let cardsDrawn = 0;
+            let targetCards = [...(target.flip3Cards || [])];
+            let targetBusted = false;
+            let targetSecondChance = false;
+
             const drawNext = () => {
-                if (cardsDrawn >= 3 || this.deck.length === 0) {
-                    document.getElementById('status-message').textContent =
-                        `🎯 ${this.players[targetIndex].name} will start with ${this.players[targetIndex].pendingCards.length} card(s)!`;
-                    this.turnActive = true;
+                if (cardsDrawn >= 3 || this.deck.length === 0 || targetBusted) {
+                    // Save target's cards for their turn
+                    if (!targetBusted) {
+                        target.pendingCards = targetCards;
+                    } else {
+                        target.pendingCards = null;
+                        target.bustedByFlip3 = true;
+                    }
+
+                    // Switch focus back to original player
+                    setTimeout(() => {
+                        const origPlayer = this.players[originalPlayer];
+                        document.getElementById('current-player-name').textContent = origPlayer.name;
+                        document.getElementById('flipped-cards').innerHTML = '';
+                        this.currentCards = originalCards;
+                        this.hasSecondChance = originalSecondChance;
+                        for (const c of this.currentCards) {
+                            this.renderCard(c);
+                        }
+                        this.updateCurrentScore();
+                        document.getElementById('status-message').textContent = targetBusted
+                            ? `🎯 ${target.name} busted from Flip 3!`
+                            : `🎯 ${target.name} will start with ${targetCards.length} card(s)`;
+                        document.getElementById('btn-flip').disabled = false;
+                        if (this.currentCards.length > 0) {
+                            document.getElementById('btn-stop').disabled = false;
+                        }
+                        this.turnActive = true;
+                    }, 1000);
                     return;
                 }
+
                 const card = this.deck.pop();
                 document.getElementById('deck-remaining').textContent = this.deck.length;
-                this.players[targetIndex].pendingCards.push(card);
                 cardsDrawn++;
-                document.getElementById('status-message').textContent =
-                    `🎯 Drew ${card.type === 'number' ? card.value : card.label} for ${this.players[targetIndex].name} (${cardsDrawn}/3)`;
+
+                if (card.type === 'number') {
+                    const isDuplicate = targetCards.some(c => c.type === 'number' && c.value === card.value);
+                    if (isDuplicate) {
+                        if (targetSecondChance) {
+                            targetSecondChance = false;
+                            this.renderCard(card, true);
+                            document.getElementById('status-message').textContent = `🛡️ Second Chance saved ${target.name}!`;
+                            setTimeout(() => {
+                                const container = document.getElementById('flipped-cards');
+                                const lastCard = container.lastElementChild;
+                                if (lastCard) lastCard.remove();
+                                setTimeout(drawNext, 500);
+                            }, 1000);
+                            return;
+                        }
+                        this.renderCard(card, true);
+                        targetBusted = true;
+                        document.getElementById('status-message').textContent = `💥 ${target.name} BUSTED from Flip 3!`;
+                        setTimeout(drawNext, 1000);
+                        return;
+                    }
+                    targetCards.push(card);
+                    this.renderCard(card);
+                } else {
+                    targetCards.push(card);
+                    this.renderCard(card);
+                    if (card.subtype === 'second_chance') targetSecondChance = true;
+                }
+
+                // Update score display for target
+                let score = 0;
+                for (const c of targetCards) {
+                    if (c.type === 'number') score += c.value;
+                    else if (c.subtype === 'plus2') score += 2;
+                    else if (c.subtype === 'plus4') score += 4;
+                }
+                const numCount = targetCards.filter(c => c.type === 'number').length;
+                document.getElementById('current-points').textContent = score;
+                document.getElementById('card-count-display').textContent = `(${numCount}/7 number cards)`;
+                document.getElementById('status-message').textContent = `🎯 Drawing for ${target.name} (${cardsDrawn}/3)`;
+
                 setTimeout(drawNext, 800);
             };
-            drawNext();
+
+            setTimeout(drawNext, 600);
         }
     }
 
