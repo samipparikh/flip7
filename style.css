@@ -421,6 +421,14 @@ body {
     color: #a0a0b0;
 }
 
+.debt-row {
+    text-align: center;
+    padding: 6px 20px 14px;
+    color: #ffd93d;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
 /* Rules */
 .rules-content {
     max-width: 600px;

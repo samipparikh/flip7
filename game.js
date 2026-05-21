@@ -705,17 +705,27 @@ class Game {
 
     endGame() {
         const sorted = [...this.players].sort((a, b) => b.totalScore - a.totalScore);
+        const winner = sorted[0];
         const container = document.getElementById('final-scores');
         container.innerHTML = sorted.map((p, i) => {
-            const diff = p.totalScore - TARGET_SCORE;
-            const diffText = diff >= 0 ? `+${diff}` : `${diff}`;
+            const diff = winner.totalScore - p.totalScore;
+            if (i === 0) {
+                return `
+                    <div class="score-row winner">
+                        <span class="name">👑 ${p.name}</span>
+                        <span class="points">${p.totalScore}</span>
+                    </div>
+                `;
+            }
             return `
-                <div class="score-row ${i === 0 ? 'winner' : ''}">
-                    <span class="name">${i === 0 ? '👑 ' : ''}${p.name}</span>
+                <div class="score-row">
+                    <span class="name">${p.name}</span>
                     <span>
-                        <span class="round-detail">${diffText} from ${TARGET_SCORE}</span>
                         <span class="points">${p.totalScore}</span>
                     </span>
+                </div>
+                <div class="debt-row">
+                    <span>Now you owe ${winner.name} ${diff} bags of gold!</span>
                 </div>
             `;
         }).join('');

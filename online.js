@@ -745,23 +745,30 @@ class OnlineGame {
         const players = room.players || {};
         const turnOrder = room.turnOrder || [];
         const scores = room.scores || {};
-        const target = room.targetScore || TARGET_SCORE;
 
         const sorted = turnOrder
             .map(id => ({ id, name: (players[id] || {}).name || '?', score: scores[id] || 0 }))
             .sort((a, b) => b.score - a.score);
 
+        const winner = sorted[0];
         const container = document.getElementById('online-final-scores');
         container.innerHTML = sorted.map((p, i) => {
-            const diff = p.score - target;
-            const diffText = diff >= 0 ? `+${diff}` : `${diff}`;
-            return `
-                <div class="score-row ${i === 0 ? 'winner' : ''}">
-                    <span class="name">${i === 0 ? '👑 ' : ''}${p.name}</span>
-                    <span>
-                        <span class="round-detail">${diffText} from ${target}</span>
+            if (i === 0) {
+                return `
+                    <div class="score-row winner">
+                        <span class="name">👑 ${p.name}</span>
                         <span class="points">${p.score}</span>
-                    </span>
+                    </div>
+                `;
+            }
+            const diff = winner.score - p.score;
+            return `
+                <div class="score-row">
+                    <span class="name">${p.name}</span>
+                    <span class="points">${p.score}</span>
+                </div>
+                <div class="debt-row">
+                    <span>Now you owe ${winner.name} ${diff} bags of gold!</span>
                 </div>
             `;
         }).join('');
