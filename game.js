@@ -1,22 +1,52 @@
 const TOTAL_ROUNDS = 3;
 const SEVEN_CARD_BONUS = true;
 
+const SPECIAL_CARD_DEFAULTS = {
+    plus2: { label: '+2', icon: '⭐', count: 14 },
+    plus4: { label: '+4', icon: '💎', count: 6 },
+    second_chance: { label: '2nd Chance', icon: '🛡️', count: 10 },
+    freeze: { label: 'Freeze', icon: '❄️', count: 8 },
+    flip3: { label: 'Flip 3', icon: '🎯', count: 8 },
+};
+
+let deckSettings = JSON.parse(JSON.stringify(SPECIAL_CARD_DEFAULTS));
+
+function loadDeckSettings() {
+    const saved = localStorage.getItem('flip7_deck_settings');
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        for (const key of Object.keys(deckSettings)) {
+            if (parsed[key] !== undefined) {
+                deckSettings[key].count = parsed[key];
+            }
+        }
+    }
+}
+
+function saveDeckSettings() {
+    const toSave = {};
+    for (const [key, val] of Object.entries(deckSettings)) {
+        toSave[key] = val.count;
+    }
+    localStorage.setItem('flip7_deck_settings', JSON.stringify(toSave));
+}
+
 function buildDeck() {
     const cards = [];
-    // Number cards: 1-12, quantity equals the value (1×1, 2×2, ... 12×12) = 78 cards
     for (let n = 1; n <= 12; n++) {
         for (let i = 0; i < n; i++) {
             cards.push({ type: 'number', value: n });
         }
     }
-    // Special cards (46 total)
-    for (let i = 0; i < 14; i++) cards.push({ type: 'special', subtype: 'plus2', label: '+2', icon: '⭐' });
-    for (let i = 0; i < 6; i++) cards.push({ type: 'special', subtype: 'plus4', label: '+4', icon: '💎' });
-    for (let i = 0; i < 10; i++) cards.push({ type: 'special', subtype: 'second_chance', label: '2nd Chance', icon: '🛡️' });
-    for (let i = 0; i < 8; i++) cards.push({ type: 'special', subtype: 'freeze', label: 'Freeze', icon: '❄️' });
-    for (let i = 0; i < 8; i++) cards.push({ type: 'special', subtype: 'flip3', label: 'Flip 3', icon: '🎯' });
+    for (const [subtype, config] of Object.entries(deckSettings)) {
+        for (let i = 0; i < config.count; i++) {
+            cards.push({ type: 'special', subtype, label: config.label, icon: config.icon });
+        }
+    }
     return cards;
 }
+
+loadDeckSettings();
 
 function shuffle(arr) {
     const a = [...arr];
@@ -35,6 +65,7 @@ class Game {
             roundEnd: document.getElementById('round-end-screen'),
             gameOver: document.getElementById('game-over-screen'),
             rules: document.getElementById('rules-screen'),
+            deckSettings: document.getElementById('deck-settings-screen'),
         };
         this.playerCount = 3;
         this.players = [];
@@ -55,6 +86,9 @@ class Game {
         document.getElementById('btn-plus').addEventListener('click', () => this.changePlayerCount(1));
         document.getElementById('btn-start').addEventListener('click', () => this.startGame());
         document.getElementById('btn-play-online').addEventListener('click', () => this.showOnlineMenu());
+        document.getElementById('btn-deck-settings').addEventListener('click', () => this.showDeckSettings());
+        document.getElementById('btn-back-deck').addEventListener('click', () => this.showScreen('menu'));
+        document.getElementById('btn-reset-deck').addEventListener('click', () => this.resetDeckSettings());
         document.getElementById('btn-rules').addEventListener('click', () => this.showScreen('rules'));
         document.getElementById('btn-back-rules').addEventListener('click', () => this.showScreen('menu'));
         document.getElementById('btn-flip').addEventListener('click', () => this.flipCard());
@@ -66,6 +100,54 @@ class Game {
     showOnlineMenu() {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById('online-screen').classList.add('active');
+    }
+
+    showDeckSettings() {
+        this.renderDeckSettings();
+        this.showScreen('deckSettings');
+    }
+
+    renderDeckSettings() {
+        const container = document.getElementById('deck-settings-list');
+        container.innerHTML = Object.entries(deckSettings).map(([key, config]) => `
+            <div class="deck-setting-row">
+                <span class="deck-setting-label">${config.icon} ${config.label}</span>
+                <div class="player-count-selector">
+                    <button class="btn-count" data-key="${key}" data-delta="-1">−</button>
+                    <span class="deck-setting-count" id="deck-count-${key}">${config.count}</span>
+                    <button class="btn-count" data-key="${key}" data-delta="1">+</button>
+                </div>
+            </div>
+        `).join('');
+
+        container.querySelectorAll('.btn-count').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const key = btn.dataset.key;
+                const delta = parseInt(btn.dataset.delta);
+                deckSettings[key].count = Math.max(0, deckSettings[key].count + delta);
+                document.getElementById(`deck-count-${key}`).textContent = deckSettings[key].count;
+                saveDeckSettings();
+                this.updateDeckTotal();
+            });
+        });
+
+        this.updateDeckTotal();
+    }
+
+    updateDeckTotal() {
+        let total = 78;
+        for (const config of Object.values(deckSettings)) {
+            total += config.count;
+        }
+        document.getElementById('deck-total-count').textContent = total;
+    }
+
+    resetDeckSettings() {
+        for (const key of Object.keys(deckSettings)) {
+            deckSettings[key].count = SPECIAL_CARD_DEFAULTS[key].count;
+        }
+        saveDeckSettings();
+        this.renderDeckSettings();
     }
 
     changePlayerCount(delta) {

@@ -25,6 +25,7 @@
                 <div id="player-names"></div>
                 <button class="btn-primary" id="btn-start">Local Game</button>
                 <button class="btn-primary btn-online" id="btn-play-online">Play Online</button>
+                <button class="btn-secondary" id="btn-deck-settings">Deck Settings</button>
                 <button class="btn-secondary" id="btn-rules">How to Play</button>
             </div>
         </div>
@@ -131,6 +132,17 @@
             <h2>Game Over!</h2>
             <div id="final-scores"></div>
             <button class="btn-primary" id="btn-play-again">Play Again</button>
+        </div>
+
+        <div id="deck-settings-screen" class="screen">
+            <div class="rules-content">
+                <h2>Deck Settings</h2>
+                <p class="deck-settings-hint">Adjust the number of each special card in the deck.</p>
+                <div class="deck-settings-list" id="deck-settings-list"></div>
+                <div class="deck-total">Total cards: <span id="deck-total-count">0</span></div>
+                <button class="btn-primary" id="btn-reset-deck">Reset to Defaults</button>
+                <button class="btn-secondary" id="btn-back-deck">Back</button>
+            </div>
         </div>
 
         <div id="rules-screen" class="screen">
