@@ -1,4 +1,4 @@
-const TOTAL_ROUNDS = 3;
+const TARGET_SCORE = 200;
 const SEVEN_CARD_BONUS = true;
 
 const SPECIAL_CARD_DEFAULTS = {
@@ -190,7 +190,7 @@ class Game {
         this.frozenPlayers = new Set();
         this.players.forEach(p => p.roundScore = 0);
         document.getElementById('current-round').textContent = this.currentRound;
-        document.getElementById('total-rounds').textContent = TOTAL_ROUNDS;
+        document.getElementById('total-rounds').textContent = `Target: ${TARGET_SCORE}`;
         this.showScreen('game');
         this.startTurn();
     }
@@ -685,7 +685,9 @@ class Game {
         }).join('');
         container.innerHTML = rows;
 
-        if (this.currentRound >= TOTAL_ROUNDS) {
+        const anyoneReachedTarget = this.players.some(p => p.totalScore >= TARGET_SCORE);
+
+        if (anyoneReachedTarget) {
             document.getElementById('btn-next-round').textContent = 'See Final Results';
             document.getElementById('btn-next-round').onclick = () => this.endGame();
         } else {
@@ -704,12 +706,19 @@ class Game {
     endGame() {
         const sorted = [...this.players].sort((a, b) => b.totalScore - a.totalScore);
         const container = document.getElementById('final-scores');
-        container.innerHTML = sorted.map((p, i) => `
-            <div class="score-row ${i === 0 ? 'winner' : ''}">
-                <span class="name">${i === 0 ? '👑 ' : ''}${p.name}</span>
-                <span class="points">${p.totalScore}</span>
-            </div>
-        `).join('');
+        container.innerHTML = sorted.map((p, i) => {
+            const diff = p.totalScore - TARGET_SCORE;
+            const diffText = diff >= 0 ? `+${diff}` : `${diff}`;
+            return `
+                <div class="score-row ${i === 0 ? 'winner' : ''}">
+                    <span class="name">${i === 0 ? '👑 ' : ''}${p.name}</span>
+                    <span>
+                        <span class="round-detail">${diffText} from ${TARGET_SCORE}</span>
+                        <span class="points">${p.totalScore}</span>
+                    </span>
+                </div>
+            `;
+        }).join('');
         this.showScreen('gameOver');
     }
 }

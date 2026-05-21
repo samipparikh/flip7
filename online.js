@@ -202,7 +202,7 @@ class OnlineGame {
         const gameState = {
             state: 'playing',
             currentRound: 1,
-            totalRounds: 3,
+            targetScore: TARGET_SCORE,
             turnOrder: playerIds,
             currentTurnIndex: 0,
             deck: deck,
@@ -232,7 +232,7 @@ class OnlineGame {
         const currentPlayer = players[currentPlayerId];
 
         document.getElementById('online-round-info').textContent =
-            `Round ${room.currentRound} / ${room.totalRounds}`;
+            `Round ${room.currentRound} | Target: ${room.targetScore || TARGET_SCORE}`;
         document.getElementById('online-deck-remaining').textContent =
             (room.deck || []).length - (room.deckIndex || 0);
         document.getElementById('online-current-player').textContent =
@@ -673,7 +673,10 @@ class OnlineGame {
             scores[id] = (scores[id] || 0) + (roundScores[id] || 0);
         });
 
-        if ((room.currentRound || 1) >= (room.totalRounds || 3)) {
+        const target = room.targetScore || TARGET_SCORE;
+        const anyoneReached = turnOrder.some(id => (scores[id] || 0) >= target);
+
+        if (anyoneReached) {
             await this.roomRef.update({
                 state: 'game_over',
                 scores: scores,
@@ -742,18 +745,26 @@ class OnlineGame {
         const players = room.players || {};
         const turnOrder = room.turnOrder || [];
         const scores = room.scores || {};
+        const target = room.targetScore || TARGET_SCORE;
 
         const sorted = turnOrder
             .map(id => ({ id, name: (players[id] || {}).name || '?', score: scores[id] || 0 }))
             .sort((a, b) => b.score - a.score);
 
         const container = document.getElementById('online-final-scores');
-        container.innerHTML = sorted.map((p, i) => `
-            <div class="score-row ${i === 0 ? 'winner' : ''}">
-                <span class="name">${i === 0 ? '👑 ' : ''}${p.name}</span>
-                <span class="points">${p.score}</span>
-            </div>
-        `).join('');
+        container.innerHTML = sorted.map((p, i) => {
+            const diff = p.score - target;
+            const diffText = diff >= 0 ? `+${diff}` : `${diff}`;
+            return `
+                <div class="score-row ${i === 0 ? 'winner' : ''}">
+                    <span class="name">${i === 0 ? '👑 ' : ''}${p.name}</span>
+                    <span>
+                        <span class="round-detail">${diffText} from ${target}</span>
+                        <span class="points">${p.score}</span>
+                    </span>
+                </div>
+            `;
+        }).join('');
     }
 
     async leaveRoom() {
