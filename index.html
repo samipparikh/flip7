@@ -25,6 +25,8 @@
                 <div id="player-names"></div>
                 <button class="btn-primary" id="btn-start">Local Game</button>
                 <button class="btn-primary btn-online" id="btn-play-online">Play Online</button>
+                <button class="btn-primary btn-companion" id="btn-companion">Companion Mode</button>
+                <button class="btn-primary btn-score-tracker" id="btn-score-tracker">Score Tracker</button>
                 <button class="btn-secondary" id="btn-deck-settings">Deck Settings</button>
                 <button class="btn-secondary" id="btn-rules">How to Play</button>
                 <button class="btn-secondary btn-feedback" id="btn-feedback">Report a Bug</button>
@@ -175,6 +177,100 @@
             </div>
         </div>
 
+        <div id="st-setup-screen" class="screen">
+            <div class="title-container">
+                <h1>FLIP<span class="seven">7</span></h1>
+                <p class="subtitle">Score Tracker</p>
+            </div>
+            <div class="menu-options">
+                <p class="comp-desc">Enter scores each round. First to 200 wins.</p>
+                <div class="player-select">
+                    <label>Players</label>
+                    <div class="player-count-selector">
+                        <button class="btn-count" id="st-btn-minus">−</button>
+                        <span id="st-player-count">3</span>
+                        <button class="btn-count" id="st-btn-plus">+</button>
+                    </div>
+                </div>
+                <div id="st-player-names"></div>
+                <button class="btn-primary" id="st-btn-start">Start</button>
+                <button class="btn-secondary" id="st-btn-back-setup">Back</button>
+            </div>
+        </div>
+
+        <div id="st-game-screen" class="screen">
+            <div class="game-header">
+                <div class="round-info" id="st-round-label">Round 1</div>
+                <button class="comp-menu-btn" id="st-btn-exit">✕</button>
+            </div>
+            <div id="st-standings" class="st-standings"></div>
+            <div class="st-input-section">
+                <div class="comp-input-label">Enter scores this round</div>
+                <div id="st-score-inputs"></div>
+                <button class="btn-primary" id="st-btn-submit">Submit Round</button>
+                <button class="btn-secondary" id="st-btn-undo" disabled>Undo Last Round</button>
+            </div>
+        </div>
+
+        <div id="st-game-over-screen" class="screen">
+            <h2>Game Over!</h2>
+            <div id="st-final-scores"></div>
+            <button class="btn-primary" id="st-btn-menu">Back to Menu</button>
+        </div>
+
+        <div id="companion-setup-screen" class="screen">
+            <div class="title-container">
+                <h1>FLIP<span class="seven">7</span></h1>
+                <p class="subtitle">Companion Mode</p>
+            </div>
+            <div class="menu-options">
+                <p class="comp-desc">Track scores and cards while playing with a real deck.</p>
+                <div class="player-select">
+                    <label>Players</label>
+                    <div class="player-count-selector">
+                        <button class="btn-count" id="comp-btn-minus">−</button>
+                        <span id="comp-player-count">3</span>
+                        <button class="btn-count" id="comp-btn-plus">+</button>
+                    </div>
+                </div>
+                <div id="comp-player-names"></div>
+                <button class="btn-primary" id="comp-btn-start">Start Tracking</button>
+                <button class="btn-secondary" id="comp-btn-back-setup">Back</button>
+            </div>
+        </div>
+
+        <div id="companion-game-screen" class="screen">
+            <div class="game-header">
+                <div class="round-info" id="comp-round-info">Round 1 | Target: 200</div>
+                <button class="comp-menu-btn" id="comp-btn-menu">✕</button>
+            </div>
+            <div class="scoreboard" id="comp-scoreboard"></div>
+            <div class="current-player-area">
+                <h2 id="comp-current-player"></h2>
+                <div class="flipped-cards" id="comp-flipped-cards"></div>
+                <div class="current-score">
+                    <span id="comp-current-points">0</span> pts
+                    <span id="comp-card-count">(0 cards)</span>
+                </div>
+                <div class="status-message" id="comp-status"></div>
+                <div id="comp-card-input"></div>
+                <button class="btn-stop comp-stop-btn" id="comp-btn-stop" disabled>STOP — Bank Points</button>
+            </div>
+            <div id="comp-deck-tracker" class="comp-deck-tracker"></div>
+        </div>
+
+        <div id="companion-round-end-screen" class="screen">
+            <h2>Round Complete!</h2>
+            <div id="comp-round-scores"></div>
+            <button class="btn-primary" id="comp-btn-next-round">Next Round</button>
+        </div>
+
+        <div id="companion-game-over-screen" class="screen">
+            <h2>Game Over!</h2>
+            <div id="comp-final-scores"></div>
+            <button class="btn-primary" id="comp-btn-play-again-menu">Back to Menu</button>
+        </div>
+
         <div id="rules-screen" class="screen">
             <div class="rules-content">
                 <h2>How to Play</h2>
@@ -223,6 +319,8 @@
         firebase.initializeApp(firebaseConfig);
     </script>
     <script src="game.js"></script>
+    <script src="scoretracker.js"></script>
+    <script src="companion.js"></script>
     <script src="online.js"></script>
 </body>
 </html>

@@ -824,6 +824,303 @@ body {
     margin: 0 auto 30px;
 }
 
+/* Score Tracker */
+.btn-score-tracker {
+    background: linear-gradient(135deg, #ffd93d, #f0932b);
+}
+
+.btn-score-tracker:hover {
+    box-shadow: 0 8px 25px rgba(255, 217, 61, 0.4);
+}
+
+.st-standings {
+    margin-bottom: 24px;
+}
+
+.st-standing-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 6px;
+}
+
+.st-standing-row.leading {
+    border-color: #ffd93d;
+    background: rgba(255, 217, 61, 0.08);
+}
+
+.st-rank {
+    color: #a0a0b0;
+    font-weight: 600;
+    width: 28px;
+}
+
+.st-name {
+    flex: 1;
+    font-weight: 600;
+}
+
+.st-total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ff6b6b;
+}
+
+.st-input-section {
+    padding: 20px 0;
+}
+
+.st-input-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.st-input-row label {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.st-input-row input {
+    width: 80px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.st-input-row input:focus {
+    border-color: #ffd93d;
+}
+
+.st-input-section .btn-primary {
+    margin-top: 20px;
+}
+
+.st-input-section .btn-secondary {
+    margin-top: 8px;
+}
+
+#st-game-over-screen {
+    text-align: center;
+    padding-top: 60px;
+}
+
+#st-game-over-screen h2 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    color: #ff6b6b;
+}
+
+#st-final-scores {
+    max-width: 400px;
+    margin: 0 auto 30px;
+}
+
+/* Companion Mode */
+.btn-companion {
+    background: linear-gradient(135deg, #4ecdc4, #2d9b93);
+}
+
+.btn-companion:hover {
+    box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+}
+
+.comp-desc {
+    color: #a0a0b0;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+.comp-menu-btn {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #a0a0b0;
+    font-size: 1.2rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.comp-menu-btn:hover {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}
+
+.comp-stop-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+}
+
+.comp-input-section {
+    margin-top: 20px;
+}
+
+.comp-input-label {
+    font-size: 0.85rem;
+    color: #a0a0b0;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-align: left;
+}
+
+.comp-number-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.comp-num-btn {
+    padding: 12px 0;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.comp-num-btn:hover {
+    border-color: #4ecdc4;
+    background: rgba(78, 205, 196, 0.15);
+}
+
+.comp-num-btn.danger {
+    border-color: rgba(255, 71, 87, 0.5);
+    background: rgba(255, 71, 87, 0.1);
+    color: #ff4757;
+}
+
+.comp-num-btn.danger:hover {
+    border-color: #ff4757;
+    background: rgba(255, 71, 87, 0.25);
+}
+
+.comp-special-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.comp-special-btn {
+    padding: 10px 6px;
+    border-radius: 10px;
+    border: 2px solid rgba(168, 85, 247, 0.3);
+    background: rgba(168, 85, 247, 0.08);
+    color: #d4a5ff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.comp-special-btn:hover {
+    border-color: #a855f7;
+    background: rgba(168, 85, 247, 0.2);
+}
+
+.comp-deck-tracker {
+    margin-top: 30px;
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.comp-tracker-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #4ecdc4;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.comp-tracker-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.comp-tracker-item {
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.comp-tracker-item.empty {
+    opacity: 0.3;
+    border-color: rgba(255, 71, 87, 0.3);
+}
+
+.comp-tracker-val {
+    display: block;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.comp-tracker-rem {
+    display: block;
+    font-size: 0.7rem;
+    color: #a0a0b0;
+}
+
+.comp-tracker-specials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.comp-tracker-special {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    color: #d4a5ff;
+}
+
+.comp-tracker-special.empty {
+    opacity: 0.3;
+}
+
+#companion-round-end-screen, #companion-game-over-screen {
+    text-align: center;
+    padding-top: 60px;
+}
+
+#companion-round-end-screen h2, #companion-game-over-screen h2 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    color: #ff6b6b;
+}
+
+#comp-round-scores, #comp-final-scores {
+    max-width: 400px;
+    margin: 0 auto 30px;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
     .title-container h1 {
@@ -852,5 +1149,17 @@ body {
 
     .btn-flip, .btn-stop {
         width: 100%;
+    }
+
+    .comp-number-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .comp-special-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .comp-tracker-grid {
+        grid-template-columns: repeat(4, 1fr);
     }
 }

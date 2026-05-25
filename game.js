@@ -68,6 +68,12 @@ function calcScore(cards) {
             score += 2;
         } else if (card.subtype === 'plus4') {
             score += 4;
+        } else if (card.subtype === 'plus6') {
+            score += 6;
+        } else if (card.subtype === 'plus8') {
+            score += 8;
+        } else if (card.subtype === 'plus10') {
+            score += 10;
         } else if (card.subtype === 'x2') {
             hasX2 = true;
         }
@@ -711,6 +717,12 @@ class Game {
                 score += 2;
             } else if (card.subtype === 'plus4') {
                 score += 4;
+            } else if (card.subtype === 'plus6') {
+                score += 6;
+            } else if (card.subtype === 'plus8') {
+                score += 8;
+            } else if (card.subtype === 'plus10') {
+                score += 10;
             } else if (card.subtype === 'x2') {
                 hasX2 = true;
             }
