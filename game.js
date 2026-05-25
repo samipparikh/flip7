@@ -2,12 +2,15 @@ const TARGET_SCORE = 200;
 const SEVEN_CARD_BONUS = true;
 
 const SPECIAL_CARD_DEFAULTS = {
-    plus2: { label: '+2', icon: '⭐', count: 14 },
-    plus4: { label: '+4', icon: '💎', count: 6 },
+    plus2: { label: '+2', icon: '⭐', count: 2 },
+    plus4: { label: '+4', icon: '💎', count: 1 },
+    plus6: { label: '+4', icon: '💎', count: 1 },
+    plus8: { label: '+4', icon: '💎', count: 1 },
+    plus10: { label: '+4', icon: '💎', count: 1 },
     x2: { label: 'x2', icon: '💥', count: 1 },
-    second_chance: { label: '2nd Chance', icon: '🛡️', count: 10 },
-    freeze: { label: 'Freeze', icon: '❄️', count: 8 },
-    flip3: { label: 'Flip 3', icon: '🎯', count: 8 },
+    second_chance: { label: '2nd Chance', icon: '🛡️', count: 3 },
+    freeze: { label: 'Freeze', icon: '❄️', count: 3 },
+    flip3: { label: 'Flip 3', icon: '🎯', count: 3 },
 };
 
 let deckSettings = JSON.parse(JSON.stringify(SPECIAL_CARD_DEFAULTS));
