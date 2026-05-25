@@ -19,6 +19,12 @@ function loadDeckSettings() {
     const saved = localStorage.getItem('flip7_deck_settings');
     if (saved) {
         const parsed = JSON.parse(saved);
+        const defaultKeys = Object.keys(deckSettings).sort().join(',');
+        const savedKeys = Object.keys(parsed).sort().join(',');
+        if (defaultKeys !== savedKeys) {
+            localStorage.removeItem('flip7_deck_settings');
+            return;
+        }
         for (const key of Object.keys(deckSettings)) {
             if (parsed[key] !== undefined) {
                 deckSettings[key].count = parsed[key];
