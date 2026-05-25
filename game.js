@@ -4,9 +4,9 @@ const SEVEN_CARD_BONUS = true;
 const SPECIAL_CARD_DEFAULTS = {
     plus2: { label: '+2', icon: '⭐', count: 2 },
     plus4: { label: '+4', icon: '💎', count: 1 },
-    plus6: { label: '+4', icon: '💎', count: 1 },
-    plus8: { label: '+4', icon: '💎', count: 1 },
-    plus10: { label: '+4', icon: '💎', count: 1 },
+    plus6: { label: '+6', icon: '💎', count: 1 },
+    plus8: { label: '+8', icon: '💎', count: 1 },
+    plus10: { label: '+10', icon: '💎', count: 1 },
     x2: { label: 'x2', icon: '💥', count: 1 },
     second_chance: { label: '2nd Chance', icon: '🛡️', count: 3 },
     freeze: { label: 'Freeze', icon: '❄️', count: 3 },
