@@ -39,7 +39,7 @@ class CompanionGame {
     }
 
     changePlayerCount(delta) {
-        this.playerCount = Math.max(2, Math.min(10, this.playerCount + delta));
+        this.playerCount = Math.max(2, Math.min(20, this.playerCount + delta));
         document.getElementById('comp-player-count').textContent = this.playerCount;
         this.updatePlayerNames();
     }

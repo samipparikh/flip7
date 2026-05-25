@@ -32,7 +32,7 @@ class ScoreTracker {
     }
 
     changePlayerCount(delta) {
-        this.playerCount = Math.max(2, Math.min(10, this.playerCount + delta));
+        this.playerCount = Math.max(2, Math.min(20, this.playerCount + delta));
         document.getElementById('st-player-count').textContent = this.playerCount;
         this.updatePlayerNames();
     }
