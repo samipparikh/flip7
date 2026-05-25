@@ -352,6 +352,7 @@ class Game {
             if (isDuplicate) {
                 if (this.hasSecondChance) {
                     this.hasSecondChance = false;
+                    this.markCardUsed(this.secondChanceCard);
                     this.renderCard(card, true);
                     document.getElementById('status-message').textContent = '🛡️ Second Chance saved you!';
                     setTimeout(() => {
@@ -389,6 +390,7 @@ class Game {
             if (isDuplicate) {
                 if (this.hasSecondChance) {
                     this.hasSecondChance = false;
+                    this.markCardUsed(this.secondChanceCard);
                     this.renderCard(card, true);
                     document.getElementById('status-message').textContent = '🛡️ Second Chance saved you!';
                     setTimeout(() => {
@@ -434,12 +436,15 @@ class Game {
                 break;
             case 'second_chance':
                 this.hasSecondChance = true;
+                this.secondChanceCard = card;
                 document.getElementById('status-message').textContent = '🛡️ Second Chance active!';
                 break;
             case 'freeze':
+                this.markCardUsed(card);
                 this.showFreezeModal();
                 break;
             case 'flip3':
+                this.markCardUsed(card);
                 this.showFlip3Modal();
                 break;
         }
@@ -612,6 +617,7 @@ class Game {
             if (isDuplicate) {
                 if (this.hasSecondChance) {
                     this.hasSecondChance = false;
+                    this.markCardUsed(this.secondChanceCard);
                     this.renderCard(card, true);
                     document.getElementById('status-message').textContent = '🛡️ Second Chance saved you!';
                     setTimeout(() => {
@@ -690,6 +696,13 @@ class Game {
         }
 
         container.appendChild(el);
+        card._el = el;
+    }
+
+    markCardUsed(card) {
+        if (card._el && !card._el.classList.contains('used')) {
+            card._el.classList.add('used');
+        }
     }
 
     bust(card) {

@@ -168,6 +168,7 @@ class CompanionGame {
         if (isDuplicate) {
             if (this.hasSecondChance) {
                 this.hasSecondChance = false;
+                this.markCardUsed(this.secondChanceCard);
                 document.getElementById('comp-status').textContent = `🛡️ Second Chance saved you! (${value} discarded)`;
                 this.drawnCards.push({ type: 'number', value, discarded: true });
                 this.updateDeckTracker();
@@ -208,12 +209,15 @@ class CompanionGame {
         switch (subtype) {
             case 'second_chance':
                 this.hasSecondChance = true;
+                this.secondChanceCard = card;
                 document.getElementById('comp-status').textContent = '🛡️ Second Chance active!';
                 break;
             case 'freeze':
+                this.markCardUsed(card);
                 this.showCompFreezeModal();
                 break;
             case 'flip3':
+                this.markCardUsed(card);
                 document.getElementById('comp-status').textContent = '🎯 Flip 3 — input cards for the target player manually';
                 break;
             default:
@@ -271,6 +275,13 @@ class CompanionGame {
             el.innerHTML = `<span class="card-icon">${card.icon}</span>${card.label}`;
         }
         container.appendChild(el);
+        card._el = el;
+    }
+
+    markCardUsed(card) {
+        if (card && card._el && !card._el.classList.contains('used')) {
+            card._el.classList.add('used');
+        }
     }
 
     bust(value) {

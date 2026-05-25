@@ -286,6 +286,28 @@ body {
     margin-bottom: 2px;
 }
 
+.card.special.used {
+    opacity: 0.6;
+    position: relative;
+}
+
+.card.special.used::after {
+    content: '✓';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 8px;
+}
+
 .card.bust {
     background: linear-gradient(135deg, #ff4757, #c0392b);
     color: #fff;
